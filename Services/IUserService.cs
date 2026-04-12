@@ -4,10 +4,10 @@ namespace Backend.Services;
 
 public interface IUserService
 {
-    Task<BaseResponse> GetUsersAsync(CancellationToken cancellationToken = default);
-    Task<BaseResponse> GetUserByIdAsync(int id, CancellationToken cancellationToken = default);
-    Task<BaseResponse> CreateUserAsync(CreateUserRequest request, CancellationToken cancellationToken = default);
-    Task<BaseResponse> UpdateUserAsync(int id, UpdateUserRequest request, CancellationToken cancellationToken = default);
-    Task<BaseResponse> DeleteUserAsync(int id, CancellationToken cancellationToken = default);
-    Task<BaseResponse> LoginAsync(LoginUserRequest request, CancellationToken cancellationToken = default);
+    Task<BaseResponse> GetUsersAsync();
+    Task<BaseResponse> GetUserByIdAsync(int id);
+    Task<BaseResponse> CreateUserAsync(CreateUserRequest request);
+    Task<BaseResponse> UpdateUserAsync(int id, UpdateUserRequest request);
+    Task<BaseResponse> DeleteUserAsync(int id);
+    Task<BaseResponse> LoginAsync(LoginUserRequest request);
 }
