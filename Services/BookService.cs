@@ -14,12 +14,12 @@ public class BookService : IBookService
         _dataSource = dataSource;
     }
 
-    public async Task<BaseResponse> GetBooksAsync(CancellationToken cancellationToken = default)
+    public async Task<BaseResponse> GetBooksAsync()
     {
-        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
         var sql = "SELECT id, title, author FROM books ORDER BY id";
-        var command = new CommandDefinition(sql, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql);
         var books = await connection.QueryAsync<Book>(command);
 
         return new BaseResponse
@@ -28,12 +28,12 @@ public class BookService : IBookService
         };
     }
 
-    public async Task<BaseResponse> GetBookByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<BaseResponse> GetBookByIdAsync(int id)
     {
-        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
         var sql = "SELECT id, title, author FROM books WHERE id = @Id";
-        var command = new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, new { Id = id });
         var book = await connection.QuerySingleOrDefaultAsync<Book>(command);
 
         if (book is null)
@@ -47,7 +47,7 @@ public class BookService : IBookService
         };
     }
 
-    public async Task<BaseResponse> CreateBookAsync(CreateBookRequest request, CancellationToken cancellationToken = default)
+    public async Task<BaseResponse> CreateBookAsync(CreateBookRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Author))
         {
@@ -57,7 +57,7 @@ public class BookService : IBookService
         var title = request.Title.Trim();
         var author = request.Author.Trim();
 
-        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
         var sql =
             """
@@ -65,7 +65,7 @@ public class BookService : IBookService
             VALUES (@Title, @Author)
             RETURNING id, title, author;
             """;
-        var command = new CommandDefinition(sql, new { Title = title, Author = author }, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, new { Title = title, Author = author });
         var created = await connection.QuerySingleAsync<Book>(command);
 
         return new BaseResponse
@@ -75,7 +75,7 @@ public class BookService : IBookService
         };
     }
 
-    public async Task<BaseResponse> UpdateBookAsync(int id, UpdateBookRequest request, CancellationToken cancellationToken = default)
+    public async Task<BaseResponse> UpdateBookAsync(int id, UpdateBookRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Author))
         {
@@ -85,7 +85,7 @@ public class BookService : IBookService
         var title = request.Title.Trim();
         var author = request.Author.Trim();
 
-        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
         var sql =
             """
@@ -96,8 +96,7 @@ public class BookService : IBookService
             """;
         var command = new CommandDefinition(
             sql,
-            new { Id = id, Title = title, Author = author },
-            cancellationToken: cancellationToken);
+            new { Id = id, Title = title, Author = author });
         var updated = await connection.QuerySingleOrDefaultAsync<Book>(command);
 
         if (updated is null)
@@ -111,12 +110,12 @@ public class BookService : IBookService
         };
     }
 
-    public async Task<BaseResponse> DeleteBookAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<BaseResponse> DeleteBookAsync(int id)
     {
-        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
         var sql = "DELETE FROM books WHERE id = @Id";
-        var command = new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, new { Id = id });
         var rowsAffected = await connection.ExecuteAsync(command);
 
         if (rowsAffected == 0)

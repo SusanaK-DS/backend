@@ -15,23 +15,23 @@ public class UserService : IUserService
         _dataSource = dataSource;
     }
 
-    public async Task<BaseResponse> GetUsersAsync(CancellationToken cancellationToken = default)
+    public async Task<BaseResponse> GetUsersAsync()
     {
-        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
         var sql = "SELECT id, name, email FROM library_users ORDER BY id";
-        var command = new CommandDefinition(sql, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql);
         var users = await connection.QueryAsync<User>(command);
 
         return new BaseResponse { Data = users.ToList() };
     }
 
-    public async Task<BaseResponse> GetUserByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<BaseResponse> GetUserByIdAsync(int id)
     {
-        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
         var sql = "SELECT id, name, email FROM library_users WHERE id = @Id";
-        var command = new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, new { Id = id });
         var user = await connection.QuerySingleOrDefaultAsync<User>(command);
 
         if (user is null)
@@ -42,7 +42,7 @@ public class UserService : IUserService
         return new BaseResponse { Data = user };
     }
 
-    public async Task<BaseResponse> CreateUserAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
+    public async Task<BaseResponse> CreateUserAsync(CreateUserRequest request)
     {
         var validation = ValidateNameEmail(request.Name ?? "", request.Email ?? "");
         if (validation is not null)
@@ -53,9 +53,9 @@ public class UserService : IUserService
         var name = request.Name!.Trim();
         var email = request.Email!.Trim();
 
-        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
-        var existingUser = await GetUserByEmailAsync(connection, email, cancellationToken);
+        var existingUser = await GetUserByEmailAsync(connection, email);
         if (existingUser is not null)
         {
             return CreateErrorResponse("Email is already registered.", HttpStatusCode.BadRequest);
@@ -67,7 +67,7 @@ public class UserService : IUserService
             VALUES (@Name, @Email)
             RETURNING id, name, email;
             """;
-        var command = new CommandDefinition(sql, new { Name = name, Email = email }, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, new { Name = name, Email = email });
         var created = await connection.QuerySingleAsync<User>(command);
 
         return new BaseResponse
@@ -77,7 +77,7 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<BaseResponse> UpdateUserAsync(int id, UpdateUserRequest request, CancellationToken cancellationToken = default)
+    public async Task<BaseResponse> UpdateUserAsync(int id, UpdateUserRequest request)
     {
         var validation = ValidateNameEmail(request.Name ?? "", request.Email ?? "");
         if (validation is not null)
@@ -88,9 +88,9 @@ public class UserService : IUserService
         var name = request.Name!.Trim();
         var email = request.Email!.Trim();
 
-        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
-        var existingWithEmail = await GetUserByEmailAsync(connection, email, cancellationToken);
+        var existingWithEmail = await GetUserByEmailAsync(connection, email);
         if (existingWithEmail is not null && existingWithEmail.Id != id)
         {
             return CreateErrorResponse("Email is already registered.", HttpStatusCode.BadRequest);
@@ -105,8 +105,7 @@ public class UserService : IUserService
             """;
         var command = new CommandDefinition(
             sql,
-            new { Id = id, Name = name, Email = email },
-            cancellationToken: cancellationToken);
+            new { Id = id, Name = name, Email = email });
         var updated = await connection.QuerySingleOrDefaultAsync<User>(command);
 
         if (updated is null)
@@ -117,12 +116,12 @@ public class UserService : IUserService
         return new BaseResponse { Data = updated };
     }
 
-    public async Task<BaseResponse> DeleteUserAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<BaseResponse> DeleteUserAsync(int id)
     {
-        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
         var sql = "DELETE FROM library_users WHERE id = @Id";
-        var command = new CommandDefinition(sql, new { Id = id }, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, new { Id = id });
         var rowsAffected = await connection.ExecuteAsync(command);
 
         if (rowsAffected == 0)
@@ -136,17 +135,17 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<BaseResponse> LoginAsync(LoginUserRequest request, CancellationToken cancellationToken = default)
+    public async Task<BaseResponse> LoginAsync(LoginUserRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email?.Trim()))
         {
             return CreateErrorResponse("Email is required.", HttpStatusCode.BadRequest);
         }
 
-        await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
         var email = request.Email.Trim();
-        var user = await GetUserByEmailAsync(connection, email, cancellationToken);
+        var user = await GetUserByEmailAsync(connection, email);
         if (user is null)
         {
             return CreateErrorResponse("User not found.", HttpStatusCode.NotFound);
@@ -157,11 +156,10 @@ public class UserService : IUserService
 
     private static async Task<User?> GetUserByEmailAsync(
         NpgsqlConnection connection,
-        string email,
-        CancellationToken cancellationToken)
+        string email)
     {
         var sql = "SELECT id, name, email FROM library_users WHERE LOWER(email) = LOWER(@Email)";
-        var command = new CommandDefinition(sql, new { Email = email }, cancellationToken: cancellationToken);
+        var command = new CommandDefinition(sql, new { Email = email });
         return await connection.QuerySingleOrDefaultAsync<User>(command);
     }
 
