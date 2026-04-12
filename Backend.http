@@ -1,0 +1,33 @@
+@Backend_HostAddress = http://localhost:5259
+
+### Check PostgreSQL connection
+GET {{Backend_HostAddress}}/api/health/db
+Accept: application/json
+
+###
+
+### List books
+POST {{Backend_HostAddress}}/api/Books/getList
+Content-Type: application/json
+
+{}
+
+###
+
+### List users
+POST {{Backend_HostAddress}}/api/Users/getList
+Content-Type: application/json
+
+{}
+
+###
+
+### Login
+POST {{Backend_HostAddress}}/api/Users/login
+Content-Type: application/json
+
+{
+  "email": "someone@example.com"
+}
+
+###
