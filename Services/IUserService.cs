@@ -6,6 +6,7 @@ public interface IUserService
 {
     Task<BaseResponse> GetUsersAsync();
     Task<BaseResponse> GetUserByIdAsync(int id);
+    Task<BaseResponse> GetUserByUsername(string username);
     Task<BaseResponse> CreateUserAsync(CreateUserRequest request);
     Task<BaseResponse> UpdateUserAsync(int id, UpdateUserRequest request);
     Task<BaseResponse> DeleteUserAsync(int id);

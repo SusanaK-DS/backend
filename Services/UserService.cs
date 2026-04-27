@@ -30,7 +30,7 @@ public class UserService : IUserService
     {
         await using var connection = await _dataSource.OpenConnectionAsync();
 
-        var sql = "SELECT id, name, email FROM library_users WHERE id = @Id";
+        var sql = "SELECT * FROM library_users WHERE id = @Id";
         var command = new CommandDefinition(sql, new { Id = id });
         var user = await connection.QuerySingleOrDefaultAsync<User>(command);
 
@@ -41,7 +41,21 @@ public class UserService : IUserService
 
         return new BaseResponse { Data = user };
     }
+public async Task<BaseResponse> GetUserByUsername(string username)
+    {
+        await using var connection = await _dataSource.OpenConnectionAsync();
 
+        var sql = "SELECT * FROM library_users WHERE username = @username";
+        var command = new CommandDefinition(sql, new { username = username });
+        var user = await connection.QuerySingleOrDefaultAsync<User>(command);
+
+        if (user is null)
+        {
+            return CreateErrorResponse("User not found.", HttpStatusCode.NotFound);
+        }
+
+        return new BaseResponse { Data = user };
+    }
     public async Task<BaseResponse> CreateUserAsync(CreateUserRequest request)
     {
         var validation = ValidateNameEmail(request.Name ?? "", request.Email ?? "");
